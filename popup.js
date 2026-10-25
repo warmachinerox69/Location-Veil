@@ -413,7 +413,7 @@
     failedTiles.clear();
     settings.mapProvider = value;
     els.mapConsentStatus.textContent = value === 'offline'
-      ? 'Offline map selected — no tile-provider requests.'
+      ? 'Offline map selected. No tile-provider requests.'
       : 'Online map enabled. Viewed area and IP address are visible to the tile provider.';
     mapState.zoom = U.clamp(mapState.zoom, U.MAP_ZOOM_MIN, U.MAP_ZOOM_MAX);
     settings.mapZoom = mapState.zoom;

@@ -246,8 +246,8 @@
     if (!settings.enabled) await browser.action.setBadgeBackgroundColor({ color: '#565a69' });
     await browser.action.setTitle({
       title: settings.enabled
-        ? `Location Veil — ${settings.mode === 'fixed' ? 'Fixed location' : 'Noise protection'} default`
-        : 'Location Veil — Off (real geolocation)'
+        ? `Location Veil: ${settings.mode === 'fixed' ? 'Fixed location' : 'Noise protection'} default`
+        : 'Location Veil: Off (real geolocation)'
     });
   }
 
