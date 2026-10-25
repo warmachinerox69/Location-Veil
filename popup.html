@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Location Veil</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-mark" src="icons/icon-128.png" alt="" width="36" height="36" aria-hidden="true">
+        <div>
+          <h1>Location Veil</h1>
+          <p id="statusText">Geolocation privacy active</p>
+        </div>
+      </div>
+      <label class="switch master-switch" title="Turn Location Veil on or off">
+        <input id="enabledToggle" type="checkbox">
+        <span class="switch-track"><span class="switch-knob"></span></span>
+      </label>
+    </header>
+
+    <section class="status-card" id="statusCard">
+      <div class="status-orb"><span></span></div>
+      <div class="status-copy">
+        <strong id="statusTitle">Protected</strong>
+        <span id="statusDetail">Noise mode is active.</span>
+      </div>
+      <div class="status-pill" id="statusPill">ON</div>
+    </section>
+
+    <section class="card site-card hidden" id="siteCard">
+      <div class="site-copy">
+        <span>This site</span>
+        <strong id="siteHostname">example.com</strong>
+      </div>
+      <select id="siteRule" class="site-select" aria-label="Protection mode for this site">
+        <option value="inherit">Follow default</option>
+        <option value="noise">Noise</option>
+        <option value="fixed">Fixed</option>
+        <option value="real">Real location</option>
+      </select>
+      <small class="site-save-status" id="siteSaveStatus" role="status" aria-live="polite">Changes stay on this device.</small>
+    </section>
+
+    <section class="card modes-card">
+      <div class="section-heading">
+        <div>
+          <h2>Default location mode</h2>
+          <p>Used unless the current hostname has an override.</p>
+        </div>
+      </div>
+      <div class="segmented" role="radiogroup" aria-label="Default location mode">
+        <button class="mode-button" id="noiseMode" type="button" data-mode="noise" role="radio">
+          <span class="mode-icon noise-icon">≈</span>
+          <span><strong>Noise</strong><small>Blur current location</small></span>
+        </button>
+        <button class="mode-button" id="fixedMode" type="button" data-mode="fixed" role="radio">
+          <span class="mode-icon fixed-icon">●</span>
+          <span><strong>Fixed</strong><small>Use one saved point</small></span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card mode-panel" id="noisePanel">
+      <div class="section-heading compact">
+        <div>
+          <h2>Noise protection</h2>
+          <p>Planar-Laplace noise, cached between requests.</p>
+        </div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric">
+          <span>Protection</span>
+          <strong id="protectionValue">250 m</strong>
+        </div>
+        <div class="metric">
+          <span>Accuracy · 95%</span>
+          <strong id="accuracyValue">593 m</strong>
+        </div>
+      </div>
+
+      <label class="slider-block" for="protectionSlider">
+        <div class="slider-label"><span>Privacy / accuracy</span><span id="privacyHint">Balanced</span></div>
+        <input id="protectionSlider" type="range" min="0" max="100" step="1">
+        <div class="slider-ends"><span>40 m</span><span>3 km</span></div>
+      </label>
+
+      <div class="divider"></div>
+
+      <label class="slider-block" for="cacheSlider">
+        <div class="slider-label"><span>Random location cache</span><strong id="cacheValue">1 hr</strong></div>
+        <input id="cacheSlider" type="range" min="30" max="780" step="5">
+        <div class="slider-ends"><span>30 min</span><span>13 hr</span></div>
+      </label>
+
+      <div class="cache-row">
+        <span id="cacheStatus">A new noisy point will be generated when needed.</span>
+        <button id="refreshNoise" class="text-button" type="button">New point</button>
+      </div>
+
+    </section>
+
+    <section class="card mode-panel hidden" id="fixedPanel">
+      <div class="section-heading compact fixed-heading">
+        <div>
+          <h2>Fixed location</h2>
+          <p>Click, drag, zoom, or enter coordinates. The pin remains saved until changed.</p>
+        </div>
+        <select id="mapProvider" class="provider-select" aria-label="Map provider">
+          <option value="osm">OSM · Standard</option>
+          <option value="osm-dark">OSM · Dark</option>
+          <option value="topo">OpenTopoMap</option>
+          <option value="offline">Offline world</option>
+        </select>
+      </div>
+
+      <p class="map-privacy-note">Online basemaps send the viewed map area to the tile provider. Offline world makes no map network requests and still lets you set a pin. Selecting an online map asks your permission before downloading street tiles.</p>
+      <small id="mapConsentStatus" role="status" aria-live="polite" class="map-privacy-note"></small>
+      <div class="map-wrap" id="mapWrap">
+        <div id="map" class="map" tabindex="0" aria-label="Interactive map. Click to choose fixed location.">
+          <canvas id="fallbackMap" class="fallback-map" aria-hidden="true"></canvas>
+          <div id="tileLayer" class="tile-layer"></div>
+          <div id="mapPin" class="map-pin hidden" aria-hidden="true"><span></span></div>
+          <div class="map-crosshair" aria-hidden="true"></div>
+          <div class="map-controls">
+            <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+            <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+          </div>
+          <div class="map-attribution" id="mapAttribution">Natural Earth · offline fallback</div>
+        </div>
+      </div>
+
+      <div class="coord-grid">
+        <label>Latitude<input id="latInput" type="number" min="-85.051128" max="85.051128" step="0.000001" placeholder="Click map"></label>
+        <label>Longitude<input id="lngInput" type="number" min="-180" max="180" step="0.000001" placeholder="Click map"></label>
+      </div>
+      <div class="fixed-actions">
+        <span id="fixedHint">No fixed point selected yet.</span>
+        <button id="centerPin" class="text-button" type="button">Center pin</button>
+      </div>
+    </section>
+
+    <section class="card advanced-card">
+      <div class="section-heading compact">
+        <div>
+          <h2>Advanced privacy</h2>
+          <p>Control whether Fixed mode uses Firefox’s native location provider.</p>
+        </div>
+      </div>
+
+      <label class="toggle-row">
+        <span><strong>Skip native location in Fixed mode</strong><small>Recommended. Avoids contacting Firefox’s geolocation provider and skips its permission prompt.</small></span>
+        <span class="switch compact-switch">
+          <input id="fixedNoNativeApi" type="checkbox">
+          <span class="switch-track"><span class="switch-knob"></span></span>
+        </span>
+      </label>
+    </section>
+  </main>
+
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
